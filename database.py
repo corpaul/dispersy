@@ -1,6 +1,5 @@
 """
 This module provides basic database functionalty and simple version control.
-bogus comment to fake commit
 @author: Boudewijn Schoon
 @organization: Technical University Delft
 @contact: dispersy@frayja.com
