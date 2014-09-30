@@ -414,7 +414,6 @@ class Dispersy(TaskManager):
     def backup_bartercast_statistics(self, community):
         bartercast = community._statistics.bartercast
         for k in bartercast.keys():
-            self._logger.error("key: %s" % k)
             if k in self._statistics.bartercast:
                 self._statistics.bartercast[k] = dict(self._statistics.bartercast[k].items() + bartercast[k].items())
             else:
