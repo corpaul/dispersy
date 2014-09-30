@@ -410,10 +410,10 @@ class Dispersy(TaskManager):
         self.backup_bartercast_statistics(self._communities[community.cid])
         del self._communities[community.cid]
 
-    # bartercast accounting stuff
     def backup_bartercast_statistics(self, community):
         bartercast = community._statistics.bartercast
         for k in bartercast.keys():
+            self._logger.error("key: %s" % k)
             if k in self._statistics.bartercast:
                 self._statistics.bartercast[k] = dict(self._statistics.bartercast[k].items() + bartercast[k].items())
             else:
@@ -1765,9 +1765,9 @@ ORDER BY global_time""", (meta.database_id, member_database_id)))
             for message in messages:
                 # CandidateDestination.candidates may be empty
                 candidates = set(message.destination.candidates)
-                #if len(candidates) > 0:
+                # if len(candidates) > 0:
                 #    self._logger.info("message: %s, candidates: %s" % (message.meta._name, message.destination.candidates))
-                #else:
+                # else:
                 #    self._logger.info("message: %s, candidates: empty" % message.meta._name)
                 # CommunityDestination.node_count is allowed to be zero
                 if isinstance(meta.destination, CommunityDestination) and meta.destination.node_count > 0:

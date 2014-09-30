@@ -227,6 +227,8 @@ class DispersyStatistics(Statistics):
         self.bartercast = self.load_statistic(self._dispersy, u"bartercast")
         self._logger.error(self.bartercast)
 
+        self.bartercast = defaultdict()
+
     @property
     def database_version(self):
         return self._dispersy.database.database_version
