@@ -171,6 +171,8 @@ class DispersyStatistics(Statistics):
 
         self.update()
 
+        self.bartercast = defaultdict()
+
     @property
     def database_version(self):
         return self._dispersy.database.database_version
@@ -285,6 +287,11 @@ class CommunityStatistics(Statistics):
         self.dispersy_enable_candidate_walker_responses = self._community.dispersy_enable_candidate_walker_responses
 
         self.enable_debug_statistics(self._dispersy.statistics.are_debug_statistics_enabled())
+
+        self.torrents_received = defaultdict(int)
+
+        # add bartercast statistics here so we can back them up later easily
+        self.bartercast = {'torrents_received': self.torrents_received}
 
     def increase_total_received_count(self, value):
         self.msg_statistics.total_received_count += value
