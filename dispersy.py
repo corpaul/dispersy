@@ -410,6 +410,7 @@ class Dispersy(TaskManager):
         self.backup_bartercast_statistics(self._communities[community.cid])
         del self._communities[community.cid]
 
+    # bartercast accounting stuff
     def backup_bartercast_statistics(self, community):
         bartercast = community._statistics.bartercast
         for k in bartercast.keys():
