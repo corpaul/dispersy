@@ -69,7 +69,7 @@ class Database(object):
         super(Database, self).__init__()
         self._logger = logging.getLogger(self.__class__.__name__)
 
-        self._logger.debug("loading database [%s]", file_path)
+        self._logger.error("loading database [%s]", file_path)
         self._file_path = file_path
 
         # _CONNECTION, _CURSOR, AND _DATABASE_VERSION are set during open(...)

@@ -4,6 +4,9 @@ from threading import RLock
 from time import time
 
 from .util import _runtime_statistics
+from database import Database
+from os import path
+import cPickle
 
 
 class Statistics(object):
@@ -49,6 +52,12 @@ class Statistics(object):
     @abstractmethod
     def update(self):
         pass
+
+    def persist(self, dispersy, key, data):
+        db = StatisticsDatabase(dispersy)
+        db.open()
+        pickle_object = cPickle.dumps(data)
+        db.execute(u"INSERT OR REPLACE INTO statistic (name, object) values (?, ?)", (key, pickle_object))
 
 
 class MessageStatistics(object):
@@ -335,3 +344,65 @@ class CommunityStatistics(Statistics):
     def reset(self):
         self.total_candidates_discovered = 0
         self.msg_statistics.reset()
+
+LATEST_VERSION = 1
+
+schema = u"""
+-- record contains all received and non-pruned barter records.  this information is, most likely
+-- also available at other peers, since the barter records are gossiped around.
+CREATE TABLE statistic(
+ id INTEGER,                            -- primary key
+ name TEXT,                             -- name of the statistic
+ object BLOB,                           -- JSON object representing the statistic
+ PRIMARY KEY (id),
+ UNIQUE (name));
+
+CREATE TABLE option(key TEXT PRIMARY KEY, value BLOB);
+INSERT INTO option(key, value) VALUES('database_version', '""" + str(LATEST_VERSION) + """');
+"""
+
+cleanup = u"""
+DELETE FROM statistic;
+"""
+
+class StatisticsDatabase(Database):
+    if __debug__:
+        __doc__ = schema
+
+    def __init__(self, dispersy):
+        self._dispersy = dispersy
+        super(StatisticsDatabase, self).__init__(path.join(dispersy.working_directory, u"sqlite", u"statistics.db"))
+
+    def open(self):
+        self._dispersy.database.attach_commit_callback(self.commit)
+        return super(StatisticsDatabase, self).open()
+
+    def close(self, commit=True):
+        self._dispersy.database.detach_commit_callback(self.commit)
+        return super(StatisticsDatabase, self).close(commit)
+
+    def cleanup(self):
+        self.executescript(cleanup)
+
+    def check_database(self, database_version):
+        assert isinstance(database_version, unicode)
+        assert database_version.isdigit()
+        assert int(database_version) >= 0
+        database_version = int(database_version)
+
+        # setup new database with current database_version
+        if database_version < 1:
+            self.executescript(schema)
+            self.commit()
+
+        else:
+            # upgrade to version 2
+            if database_version < 2:
+                # there is no version 2 yet...
+                # if __debug__: dprint("upgrade database ", database_version, " -> ", 2)
+                # self.executescript(u"""UPDATE option SET value = '2' WHERE key = 'database_version';""")
+                # self.commit()
+                # if __debug__: dprint("upgrade database ", database_version, " -> ", 2, " (done)")
+                pass
+
+        return LATEST_VERSION
