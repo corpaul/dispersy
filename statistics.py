@@ -396,11 +396,20 @@ class CommunityStatistics(Statistics):
 LATEST_VERSION = 1
 
 schema = u"""
+<<<<<<< HEAD
 -- statistic contains a dump of the pickle object of a statistic. Mainly used to backup bartercast statistics.
 CREATE TABLE statistic(
  id INTEGER,                            -- primary key
  name TEXT,                             -- name of the statistic
  object TEXT,                           -- pickle object representing the statistic
+=======
+-- record contains all received and non-pruned barter records.  this information is, most likely
+-- also available at other peers, since the barter records are gossiped around.
+CREATE TABLE statistic(
+ id INTEGER,                            -- primary key
+ name TEXT,                             -- name of the statistic
+ object BLOB,                           -- JSON object representing the statistic
+>>>>>>> added persist method
  PRIMARY KEY (id),
  UNIQUE (name));
 
@@ -419,7 +428,6 @@ class StatisticsDatabase(Database):
 
     def __init__(self, dispersy):
         self._dispersy = dispersy
-        print "trying to open db: %s" % path.join(dispersy.working_directory, u"sqlite", u"statistics.db")
         super(StatisticsDatabase, self).__init__(path.join(dispersy.working_directory, u"sqlite", u"statistics.db"))
 
     def open(self):
