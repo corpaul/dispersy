@@ -84,12 +84,8 @@ class Statistics(object):
 
     def should_persist(self, key, n):
         """
-<<<<<<< HEAD
         Return true and reset counter for key iff the data should be persisted (for every n calls).
         Otherwise increases the counter for key.
-=======
-        Return true and reset counter for key iff the data should be persisted.
->>>>>>> persist statistic stuff
         """
         if key not in self._db_counter:
             self._db_counter[key] = 1
