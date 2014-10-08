@@ -3,10 +3,11 @@ from collections import defaultdict
 from threading import RLock
 from time import time
 
-from .util import _runtime_statistics
+from .util import _runtime_statistics, call_on_reactor_thread
 from database import Database
 from os import path
 import cPickle
+import logging
 
 
 class Statistics(object):
@@ -15,6 +16,9 @@ class Statistics(object):
 
     def __init__(self):
         self._lock = RLock()
+        self._logger = logging.getLogger(self.__class__.__name__)
+        self.db = None
+        self._db_counter = dict()
 
     def dict_inc(self, dictionary, key, value=1):
         with self._lock:
@@ -53,11 +57,43 @@ class Statistics(object):
     def update(self):
         pass
 
-    def persist(self, dispersy, key, data):
-        db = StatisticsDatabase(dispersy)
-        db.open()
+    def persist(self, dispersy, key, data, n=1):
+        """
+        Persists the statistical data with name 'key' in the statistics database.
+        Note: performs the database update for every n-th call. This is to somewhat control the number of
+        writes for statistics that are updated often.
+        """
+        if not self.should_persist(key, n):
+            return
+
+        self._init_database(dispersy)
         pickle_object = cPickle.dumps(data)
-        db.execute(u"INSERT OR REPLACE INTO statistic (name, object) values (?, ?)", (key, pickle_object))
+        self.db.execute(u"INSERT OR REPLACE INTO statistic (name, object) values (?, ?)", (unicode(key), unicode(pickle_object)))        
+
+    def load_statistic(self, dispersy, key):
+        self._init_database(dispersy)
+        data = self.db.execute(u"SELECT object FROM statistic WHERE name = ? LIMIT 1", [unicode(key)])
+        for row in data:
+            return cPickle.loads(str(row[0]))
+        return defaultdict()
+
+    def _init_database(self, dispersy):
+        if self.db is None:
+            self.db = StatisticsDatabase(dispersy)
+            self.db.open()
+
+    def should_persist(self, key, n):
+        """
+        Return true and reset counter for key iff the data should be persisted.
+        """
+        if key not in self._db_counter:
+            self._db_counter[key] = 1
+        else:
+            self._db_counter[key] = self._db_counter[key] + 1
+        if n <= self._db_counter[key]:
+            self._db_counter[key] = 0
+            return True
+        return False
 
 
 class MessageStatistics(object):
@@ -179,8 +215,12 @@ class DispersyStatistics(Statistics):
         self.enable_debug_statistics(__debug__)
 
         self.update()
+        #self.bartercast = defaultdict()
+        self.load_bartercast()
 
-        self.bartercast = defaultdict()
+    @call_on_reactor_thread
+    def load_bartercast(self):
+        self.bartercast = self.load_statistic(self._dispersy, u"bartercast")
 
     @property
     def database_version(self):
@@ -348,12 +388,11 @@ class CommunityStatistics(Statistics):
 LATEST_VERSION = 1
 
 schema = u"""
--- record contains all received and non-pruned barter records.  this information is, most likely
--- also available at other peers, since the barter records are gossiped around.
+-- statistic contains a dump of the pickle object of a statistic. Mainly used to backup bartercast statistics.
 CREATE TABLE statistic(
  id INTEGER,                            -- primary key
  name TEXT,                             -- name of the statistic
- object BLOB,                           -- JSON object representing the statistic
+ object TEXT,                           -- pickle object representing the statistic
  PRIMARY KEY (id),
  UNIQUE (name));
 
@@ -364,6 +403,7 @@ INSERT INTO option(key, value) VALUES('database_version', '""" + str(LATEST_VERS
 cleanup = u"""
 DELETE FROM statistic;
 """
+
 
 class StatisticsDatabase(Database):
     if __debug__:

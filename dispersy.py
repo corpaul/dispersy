@@ -419,9 +419,7 @@ class Dispersy(TaskManager):
                 self._statistics.bartercast[k] = dict(self._statistics.bartercast[k].items() + bartercast[k].items())
             else:
                 self._statistics.bartercast[k] = dict(bartercast[k].items())
-        self._statistics.persist(self, "bartercast", self._statistics.bartercast)
-            # if not k in self._statistics.bartercast:
-            #    self._statistics.bartercast[k] = community.statistics()[k].copy()
+        self._statistics.persist(self, "bartercast", self._statistics.bartercast, 10)
 
     def attach_progress_handler(self, func):
         assert callable(func), "handler must be callable"
