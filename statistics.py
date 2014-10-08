@@ -84,8 +84,12 @@ class Statistics(object):
 
     def should_persist(self, key, n):
         """
+<<<<<<< HEAD
         Return true and reset counter for key iff the data should be persisted (for every n calls).
         Otherwise increases the counter for key.
+=======
+        Return true and reset counter for key iff the data should be persisted.
+>>>>>>> persist statistic stuff
         """
         if key not in self._db_counter:
             self._db_counter[key] = 1
@@ -226,8 +230,6 @@ class DispersyStatistics(Statistics):
         self._logger.error("loading bartercast statistics:")
         self.bartercast = self.load_statistic(self._dispersy, u"bartercast")
         self._logger.error(self.bartercast)
-
-        self.bartercast = defaultdict()
 
     @property
     def database_version(self):
@@ -397,6 +399,7 @@ LATEST_VERSION = 1
 
 schema = u"""
 <<<<<<< HEAD
+<<<<<<< HEAD
 -- statistic contains a dump of the pickle object of a statistic. Mainly used to backup bartercast statistics.
 CREATE TABLE statistic(
  id INTEGER,                            -- primary key
@@ -410,6 +413,13 @@ CREATE TABLE statistic(
  name TEXT,                             -- name of the statistic
  object BLOB,                           -- JSON object representing the statistic
 >>>>>>> added persist method
+=======
+-- statistic contains a dump of the pickle object of a statistic. Mainly used to backup bartercast statistics.
+CREATE TABLE statistic(
+ id INTEGER,                            -- primary key
+ name TEXT,                             -- name of the statistic
+ object TEXT,                           -- pickle object representing the statistic
+>>>>>>> persist statistic stuff
  PRIMARY KEY (id),
  UNIQUE (name));
 
