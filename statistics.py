@@ -216,6 +216,7 @@ class DispersyStatistics(Statistics):
         self.enable_debug_statistics(__debug__)
 
         self.update()
+
         if load_bartercast:
             self.load_bartercast()
         else:
@@ -434,6 +435,7 @@ class StatisticsDatabase(Database):
 
     def __init__(self, dispersy):
         self._dispersy = dispersy
+        print "trying to open db: %s" % path.join(dispersy.working_directory, u"sqlite", u"statistics.db")
         super(StatisticsDatabase, self).__init__(path.join(dispersy.working_directory, u"sqlite", u"statistics.db"))
 
     def open(self):

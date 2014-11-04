@@ -1765,10 +1765,6 @@ ORDER BY global_time""", (meta.database_id, member_database_id)))
             for message in messages:
                 # CandidateDestination.candidates may be empty
                 candidates = set(message.destination.candidates)
-                # if len(candidates) > 0:
-                #    self._logger.info("message: %s, candidates: %s" % (message.meta._name, message.destination.candidates))
-                # else:
-                #    self._logger.info("message: %s, candidates: empty" % message.meta._name)
                 # CommunityDestination.node_count is allowed to be zero
                 if isinstance(meta.destination, CommunityDestination) and meta.destination.node_count > 0:
                     max_candidates = meta.destination.node_count + len(candidates)
