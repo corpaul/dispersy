@@ -68,7 +68,7 @@ class Statistics(object):
 
         self._init_database(dispersy)
         pickle_object = cPickle.dumps(data)
-        self.db.execute(u"INSERT OR REPLACE INTO statistic (name, object) values (?, ?)", (unicode(key), unicode(pickle_object)))        
+        self.db.execute(u"INSERT OR REPLACE INTO statistic (name, object) values (?, ?)", (unicode(key), unicode(pickle_object)))
 
     def load_statistic(self, dispersy, key):
         self._init_database(dispersy)
@@ -85,7 +85,7 @@ class Statistics(object):
     def should_persist(self, key, n):
         """
         Return true and reset counter for key iff the data should be persisted (for every n calls).
-        Otherwise increases the counter for key.        
+        Otherwise increases the counter for key.
         """
         if key not in self._db_counter:
             self._db_counter[key] = 1
@@ -216,7 +216,6 @@ class DispersyStatistics(Statistics):
         self.enable_debug_statistics(__debug__)
 
         self.update()
-        #self.bartercast = defaultdict()
         if load_bartercast:
             self.load_bartercast()
         else:
@@ -224,7 +223,9 @@ class DispersyStatistics(Statistics):
 
     @call_on_reactor_thread
     def load_bartercast(self):
+        self._logger.error("loading bartercast statistics:")
         self.bartercast = self.load_statistic(self._dispersy, u"bartercast")
+        self._logger.error(self.bartercast)
 
     @property
     def database_version(self):
