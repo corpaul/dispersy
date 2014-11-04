@@ -86,7 +86,7 @@ class Dispersy(TaskManager):
     outgoing data for, possibly, multiple communities.
     """
 
-    def __init__(self, endpoint, working_directory, database_filename=u"dispersy.db", crypto=ECCrypto()):
+    def __init__(self, endpoint, working_directory, database_filename=u"dispersy.db", crypto=ECCrypto(), load_bartercast=True):
         """
         Initialise a Dispersy instance.
 
@@ -156,7 +156,7 @@ class Dispersy(TaskManager):
         self._progress_handlers = []
 
         # statistics...
-        self._statistics = DispersyStatistics(self)
+        self._statistics = DispersyStatistics(self, load_bartercast)
 
 
     @staticmethod
@@ -375,7 +375,6 @@ class Dispersy(TaskManager):
         if kargs is None:
             kargs = {}
         self._auto_load_communities[community_cls.get_classification()] = (community_cls, my_member, args, kargs)
-
         communities = []
         if load:
             for master in community_cls.get_master_members(self):
@@ -1766,6 +1765,10 @@ ORDER BY global_time""", (meta.database_id, member_database_id)))
             for message in messages:
                 # CandidateDestination.candidates may be empty
                 candidates = set(message.destination.candidates)
+                if len(candidates) > 0:
+                    self._logger.info("message: %s, candidates: %s" % (message.meta._name, message.destination.candidates))
+                else:
+                    self._logger.info("message: %s, candidates: empty" % message.meta._name)
                 # CommunityDestination.node_count is allowed to be zero
                 if isinstance(meta.destination, CommunityDestination) and meta.destination.node_count > 0:
                     max_candidates = meta.destination.node_count + len(candidates)
