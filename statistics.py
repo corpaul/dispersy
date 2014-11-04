@@ -171,7 +171,7 @@ class MessageStatistics(object):
 
 class DispersyStatistics(Statistics):
 
-    def __init__(self, dispersy):
+    def __init__(self, dispersy, load_bartercast=True):
         super(DispersyStatistics, self).__init__()
         self._dispersy = dispersy
 
@@ -216,8 +216,10 @@ class DispersyStatistics(Statistics):
         self.enable_debug_statistics(__debug__)
 
         self.update()
-        # self.bartercast = defaultdict()
-        self.load_bartercast()
+        if load_bartercast:
+            self.load_bartercast()
+        else:
+            self.bartercast = defaultdict()
 
     @call_on_reactor_thread
     def load_bartercast(self):
@@ -415,6 +417,7 @@ class StatisticsDatabase(Database):
 
     def __init__(self, dispersy):
         self._dispersy = dispersy
+        print "trying to open db: %s" % path.join(dispersy.working_directory, u"sqlite", u"statistics.db")
         super(StatisticsDatabase, self).__init__(path.join(dispersy.working_directory, u"sqlite", u"statistics.db"))
 
     def open(self):

@@ -1901,6 +1901,8 @@ class Community(TaskManager):
 
     def _drop(self, drop, packet, candidate):
         self._logger.warning("drop a %d byte packet %s from %s", len(packet), drop, candidate)
+        #import traceback
+        #traceback.print_stack()
         if isinstance(drop, DropPacket):
             self._statistics.increase_msg_count(u"drop", u"drop_packet:%s" % drop)
 
@@ -2093,6 +2095,9 @@ class Community(TaskManager):
                 messages.append(conversion.decode_message(candidate, packet))
 
             except DropPacket as drop:
+                import traceback
+                traceback.print_stack()
+                print drop
                 self._drop(drop, packet, candidate)
 
             except DelayPacket as delay:

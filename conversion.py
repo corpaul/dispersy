@@ -1253,7 +1253,7 @@ class NoDefBinaryConversion(Conversion):
             raise DropPacket("Cannot decode message")
 
         decode_functions = self._decode_message_map[data[22]]
-
+        
         # placeholder
         placeholder = self.Placeholder(candidate, decode_functions.meta, 23, data, verify, allow_empty_signature)
 
