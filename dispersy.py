@@ -1716,6 +1716,7 @@ ORDER BY global_time""", (meta.database_id, member_database_id)))
                 messages[0].community.statistics.increase_msg_count(u"created", messages[0].meta.name, my_messages)
 
         if forward:
+            self._logger.debug("forwarding message: %s" % messages[0].meta.name)
             return self._forward(messages)
 
         return True
@@ -1765,10 +1766,6 @@ ORDER BY global_time""", (meta.database_id, member_database_id)))
             for message in messages:
                 # CandidateDestination.candidates may be empty
                 candidates = set(message.destination.candidates)
-                #if len(candidates) > 0:
-                #    self._logger.info("message: %s, candidates: %s" % (message.meta._name, message.destination.candidates))
-                #else:
-                #    self._logger.info("message: %s, candidates: empty" % message.meta._name)
                 # CommunityDestination.node_count is allowed to be zero
                 if isinstance(meta.destination, CommunityDestination) and meta.destination.node_count > 0:
                     max_candidates = meta.destination.node_count + len(candidates)
@@ -1777,6 +1774,7 @@ ORDER BY global_time""", (meta.database_id, member_database_id)))
                             candidates.add(candidate)
                         else:
                             break
+                self._logger.debug("sending message to %d candidates: %s" % (len(candidates), str(candidates)))
                 result = result and self._send(tuple(candidates), [message])
         else:
             raise NotImplementedError(meta.destination)
