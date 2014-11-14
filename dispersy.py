@@ -581,11 +581,11 @@ class Dispersy(TaskManager):
         destination_classification = destination.get_classification()
 
         if isinstance(source, Member):
-            self._logger.debug("reclassify <unknown> -> %s", destination_classification)
+            self._logger.error("reclassify <unknown> -> %s", destination_classification)
             master = source
 
         else:
-            self._logger.debug("reclassify %s -> %s", source.get_classification(), destination_classification)
+            self._logger.error("reclassify %s -> %s", source.get_classification(), destination_classification)
             assert source.cid in self._communities
             assert self._communities[source.cid] == source
             master = source.master_member
@@ -1769,6 +1769,7 @@ ORDER BY global_time""", (meta.database_id, member_database_id)))
                 # CommunityDestination.node_count is allowed to be zero
                 if isinstance(meta.destination, CommunityDestination) and meta.destination.node_count > 0:
                     max_candidates = meta.destination.node_count + len(candidates)
+                    self._logger.error("in _forward: my_member %s, community: %s" % (meta.community._my_member, str(meta.community)))
                     for candidate in meta.community.dispersy_yield_verified_candidates():
                         if len(candidates) < max_candidates:
                             candidates.add(candidate)

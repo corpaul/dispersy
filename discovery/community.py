@@ -26,7 +26,7 @@ DEBUG_VERBOSE = False
 
 PING_INTERVAL = CANDIDATE_WALK_LIFETIME / 5
 PING_TIMEOUT = CANDIDATE_WALK_LIFETIME / 2
-INSERT_TRACKER_INTERVAL = 300
+INSERT_TRACKER_INTERVAL = 60
 PEERCACHE_FILENAME = 'peercache.txt'
 TIME_BETWEEN_CONNECTION_ATTEMPTS = 10.0
 
@@ -191,8 +191,10 @@ class DiscoveryCommunity(Community):
         super(DiscoveryCommunity, self).initialize()
 
     def periodically_insert_trackers(self):
+        self._logger.debug("Reinserting tracker")
         communities = [community for community in self._dispersy.get_communities() if community.dispersy_enable_candidate_walker]
         if self not in communities:  # make sure we are in the communities list
+            self._logger.debug("into: communities list")
             communities.append(self)
 
         for community in communities:
