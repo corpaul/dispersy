@@ -9,6 +9,8 @@ from os import path
 import cPickle
 import logging
 
+from operator import itemgetter
+
 
 class Statistics(object):
 
@@ -25,6 +27,15 @@ class Statistics(object):
             assert hasattr(self, dictionary), u"%s doesn't exist in statistics" % dictionary
             if getattr(self, dictionary) is not None:
                 getattr(self, dictionary)[key] += value
+
+    def get_top_n_bartercast_statistics(self, key, n):
+        with self._lock:
+            assert hasattr(self, "bartercast"), u"bartercast doesn't exist in statistics"
+            assert key in getattr(self, "bartercast").keys(), u"%s doesn't exist in bartercast statistics" % key
+            d = getattr(self, "bartercast")[key]
+            if d is not None:
+                return sorted(d.items(), key=itemgetter(1), reverse=True)[0:n]
+            return None
 
     def get_dict(self):
         """
