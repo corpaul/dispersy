@@ -68,6 +68,15 @@ class Statistics(object):
     def update(self):
         pass
 
+    def log_interaction(self, dispersy, type, peer1, peer2, value):
+        """
+        Add statistic for interactions between peer1 and peer2 to the interaction log.
+        """
+        self._init_database(dispersy)
+        # self.db.execute(u"INSERT OR REPLACE INTO interaction_log (peer1, peer2, type, value, date) values (?, ?, ?, ?, strftime('%s', 'now'))", (unicode(peer1), unicode(peer2), type, value))
+        self.db.execute(u"INSERT OR REPLACE INTO interaction_log (peer1, peer2) values (?, ?)", (unicode(peer1), unicode(peer2)))
+        self._logger.error(u"INSERT OR REPLACE INTO interaction_log (peer1, peer2, type, value, date) values (%s, %s, %d, %d, now()))" % (unicode(peer1), unicode(peer2), type, value))
+
     def persist(self, dispersy, key, data, n=1):
         """
         Persists the statistical data with name 'key' in the statistics database.
@@ -426,6 +435,15 @@ CREATE TABLE statistic(
 
 CREATE TABLE option(key TEXT PRIMARY KEY, value BLOB);
 INSERT INTO option(key, value) VALUES('database_version', '""" + str(LATEST_VERSION) + """');
+
+CREATE TABLE interaction_log(
+ id INTEGER,                            -- primary key
+ peer1 TEXT,
+ peer2 TEXT,
+ type INTEGER,                        -- type of interaction
+ value INTEGER,
+ date INTEGER,
+ PRIMARY KEY (id));
 """
 
 cleanup = u"""
