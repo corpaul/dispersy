@@ -73,9 +73,9 @@ class Statistics(object):
         Add statistic for interactions between peer1 and peer2 to the interaction log.
         """
         self._init_database(dispersy)
-        # self.db.execute(u"INSERT OR REPLACE INTO interaction_log (peer1, peer2, type, value, date) values (?, ?, ?, ?, strftime('%s', 'now'))", (unicode(peer1), unicode(peer2), type, value))
-        self.db.execute(u"INSERT OR REPLACE INTO interaction_log (peer1, peer2) values (?, ?)", (unicode(peer1), unicode(peer2)))
-        self._logger.error(u"INSERT OR REPLACE INTO interaction_log (peer1, peer2, type, value, date) values (%s, %s, %d, %d, now()))" % (unicode(peer1), unicode(peer2), type, value))
+        self.db.execute(u"INSERT INTO interaction_log (peer1, peer2, type, value, date) values (?, ?, ?, ?, strftime('%s', 'now'))", (unicode(peer1), unicode(peer2), type, value))
+        # self.db.execute(u"INSERT INTO interaction_log (peer1, peer2, type, value) values (?, ?, ?, ?)", (unicode(peer1), unicode(peer2), type, value))
+        self._logger.error(u"INSERT INTO interaction_log (peer1, peer2, type, value, date) values (%s, %s, %s, %s, now()))" % (peer1, peer2, type, value))
 
     def persist(self, dispersy, key, data, n=1):
         """
