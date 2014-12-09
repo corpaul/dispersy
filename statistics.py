@@ -30,8 +30,13 @@ class Statistics(object):
 
     def get_top_n_bartercast_statistics(self, key, n):
         with self._lock:
-            assert hasattr(self, "bartercast"), u"bartercast doesn't exist in statistics"
-            assert key in getattr(self, "bartercast").keys(), u"%s doesn't exist in bartercast statistics" % key
+            # shouldn't happen but dont crash the program when bartercast statistics are not available
+            if not hasattr(self, "bartercast"):
+                self._logger.error(u"bartercast doesn't exist in statistics")
+                return []
+            if not key in getattr(self, "bartercast").keys():
+                self._logger.error(u"%s doesn't exist in bartercast statistics" % key)
+                return []
             d = getattr(self, "bartercast")[key]
             if d is not None:
                 return sorted(d.items(), key=itemgetter(1), reverse=True)[0:n]
