@@ -290,7 +290,6 @@ class Database(object):
             assert all(tests), "Bindings may not be strings.  Provide unicode for TEXT and buffer(...) for BLOB\n%s" % (statement,)
 
         self._logger.log(logging.NOTSET, "%s <-- %s [%s]", statement, bindings, self._file_path)
-        self._logger.error("%s [%s]" % (statement, bindings))
         result = self._cursor.execute(statement, bindings)
         if get_lastrowid:
             result = self._cursor.lastrowid

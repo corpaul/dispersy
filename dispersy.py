@@ -407,11 +407,14 @@ class Dispersy(TaskManager):
             self._discovery_community.new_community(community)
 
     def detach_community(self, community):
-        self.backup_bartercast_statistics(self._communities[community.cid])
-        del self._communities[community.cid]
+        # self.backup_bartercast_statistics(self._communities[community.cid])
+        self.backup_bartercast_statistics(community)
+        # del self._communities[community.cid]
+        self._communities.pop(community.cid, None)
 
     # bartercast accounting stuff
     def backup_bartercast_statistics(self, community):
+        self._logger.error("merging bartercast statistics")
         bartercast = community._statistics.bartercast
         for k in bartercast.keys():
             if k in self._statistics.bartercast:
