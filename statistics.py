@@ -8,7 +8,7 @@ from database import Database
 from os import path
 import cPickle
 import logging
-
+import random
 from operator import itemgetter
 
 
@@ -29,6 +29,12 @@ class Statistics(object):
                 getattr(self, dictionary)[key] += value
 
     def get_top_n_bartercast_statistics(self, key, n):
+        """
+        Returns top n-n/2 barter cast statistics, +n/2 randomly selected statistics from the rest of the list.
+        The randomly selected statistics are added to make sure that less active peers get a chance to appear in the rankings
+        as well.
+        @TODO check if random portion should be larger or smaller
+        """
         with self._lock:
             # shouldn't happen but dont crash the program when bartercast statistics are not available
             if not hasattr(self, "bartercast"):
@@ -39,7 +45,16 @@ class Statistics(object):
                 return []
             d = getattr(self, "bartercast")[key]
             if d is not None:
-                return sorted(d.items(), key=itemgetter(1), reverse=True)[0:n]
+                random_n = n / 2
+                fixed_n = n - random_n
+                sorted_list = sorted(d.items(), key=itemgetter(1), reverse=True)
+                top_stats = sorted_list[0:fixed_n]
+                self._logger.error("len d: %d, fixed_n: %d" % (len(d), fixed_n))
+                if len(d) <= fixed_n:
+                    random_stats = []
+                else:
+                    random_stats = random.sample(sorted_list[fixed_n:len(d)], min(random_n, len(d) - fixed_n))
+                return top_stats + random_stats
             return None
 
     def get_dict(self):
