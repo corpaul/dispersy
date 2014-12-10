@@ -17,7 +17,7 @@ if __debug__:
 # seconds.  However, taking into account round trip time and processing delay we to use smaller
 # values without conflicting with the next 5.0 walk cycle.  Hence, we pick 2.5 seconds below the
 # actual cutoff point.
-CANDIDATE_ELIGIBLE_DELAY = 1.0
+CANDIDATE_ELIGIBLE_DELAY = 27.5
 CANDIDATE_ELIGIBLE_BOOTSTRAP_DELAY = 57.5
 CANDIDATE_WALK_LIFETIME = 57.5
 CANDIDATE_STUMBLE_LIFETIME = 57.5
