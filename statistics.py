@@ -94,8 +94,6 @@ class Statistics(object):
         """
         self._init_database(dispersy)
         self.db.execute(u"INSERT INTO interaction_log (peer1, peer2, type, value, date) values (?, ?, ?, ?, strftime('%s', 'now'))", (unicode(peer1), unicode(peer2), type, value))
-        # self.db.execute(u"INSERT INTO interaction_log (peer1, peer2, type, value) values (?, ?, ?, ?)", (unicode(peer1), unicode(peer2), type, value))
-        self._logger.error(u"INSERT INTO interaction_log (peer1, peer2, type, value, date) values (%s, %s, %s, %s, now()))" % (peer1, peer2, type, value))
 
     def persist(self, dispersy, key, data, n=1):
         """
