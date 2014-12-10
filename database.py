@@ -69,7 +69,7 @@ class Database(object):
         super(Database, self).__init__()
         self._logger = logging.getLogger(self.__class__.__name__)
 
-        self._logger.error("loading database [%s]", file_path)
+        self._logger.debug("loading database [%s]", file_path)
         self._file_path = file_path
 
         # _CONNECTION, _CURSOR, AND _DATABASE_VERSION are set during open(...)
@@ -105,7 +105,7 @@ class Database(object):
         assert self._connection is not None, "Database.close() has been called or Database.open() has not been called"
         if commit:
             self.commit(exiting=True)
-        self._logger.error("close database [%s]", self._file_path)
+        self._logger.debug("close database [%s]", self._file_path)
         self._cursor.close()
         self._cursor = None
         self._connection.close()
@@ -362,6 +362,7 @@ class Database(object):
 
             if is_iterator:
                 sequenceofbindings = iter(sequenceofbindings)
+
         self._logger.log(logging.NOTSET, "%s [%s]", statement, self._file_path)
         return self._cursor.executemany(statement, sequenceofbindings)
 

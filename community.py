@@ -1181,21 +1181,21 @@ class Community(TaskManager):
             # count -everyone- that is active (i.e. walk or stumble)
             active_canidates = list(self.dispersy_yield_verified_candidates())
             if len(active_canidates) > FAST_WALKER_CANDIDATE_TARGET:
-                self._logger.error("there are %d active non-bootstrap candidates available, "
+                self._logger.debug("there are %d active non-bootstrap candidates available, "
                                    "prematurely quitting fast walker", len(active_canidates))
                 switch_to_normal_walking()
             else:
-                self._logger.error("%d candidates active, target is %d walking a bit more... (step %d of %d)",
+                self._logger.debug("%d candidates active, target is %d walking a bit more... (step %d of %d)",
                                    len(active_canidates),
                                    FAST_WALKER_CANDIDATE_TARGET, self._fast_steps_taken,
                                    FAST_WALKER_STEPS)
                 # request peers that are eligible
                 eligible_candidates = get_eligible_candidates(time())
-                self._logger.error("Found %d eligible_candidates", len(eligible_candidates))
+                self._logger.debug("Found %d eligible_candidates", len(eligible_candidates))
                 for count, candidate in enumerate(set(initial_eligible_candidates +
                                                       eligible_candidates[:FAST_WALKER_MAX_NEW_ELIGIBLE_CANDIDATES]),
                                                   1):
-                    self._logger.error("%d of %d extra walk to %s", count, len(eligible_candidates), candidate)
+                    self._logger.debug("%d of %d extra walk to %s", count, len(eligible_candidates), candidate)
                     self.create_introduction_request(candidate, allow_sync=False, is_fast_walker=True)
 
                 if self._fast_steps_taken >= FAST_WALKER_STEPS:
@@ -1213,16 +1213,16 @@ class Community(TaskManager):
 
     def take_step(self):
         now = time()
-        self._logger.error("previous sync was %.1f seconds ago",
+        self._logger.debug("previous sync was %.1f seconds ago",
                            now - self._last_sync_time if self._last_sync_time else -1)
 
         candidate = self.dispersy_get_walk_candidate()
         if candidate:
-            self._logger.error("%s %s taking step towards %s",
+            self._logger.debug("%s %s taking step towards %s",
                                self.cid.encode("HEX"), self.get_classification(), candidate)
             self.create_introduction_request(candidate, self.dispersy_enable_bloom_filter_sync)
         else:
-            self._logger.error("%s %s no candidate to take step", self.cid.encode("HEX"), self.get_classification())
+            self._logger.debug("%s %s no candidate to take step", self.cid.encode("HEX"), self.get_classification())
         self._last_sync_time = time()
 
     def _iter_category(self, category, strict=True):
@@ -1310,7 +1310,6 @@ class Community(TaskManager):
         once each.
         """
         now = time()
-        self._logger.error("in dispersy_yield_verified_candidates: %s " % str(self._candidates))
         candidates = [candidate for candidate in self._candidates.itervalues() if candidate.get_category(now) in (u"walk", u"stumble")]
         shuffle(candidates)
         return iter(candidates)
@@ -1907,8 +1906,6 @@ class Community(TaskManager):
 
     def _drop(self, drop, packet, candidate):
         self._logger.warning("drop a %d byte packet %s from %s", len(packet), drop, candidate)
-        # import traceback
-        # traceback.print_stack()
         if isinstance(drop, DropPacket):
             self._statistics.increase_msg_count(u"drop", u"drop_packet:%s" % drop)
 
@@ -2104,9 +2101,6 @@ class Community(TaskManager):
                 messages.append(conversion.decode_message(candidate, packet))
 
             except DropPacket as drop:
-                import traceback
-                traceback.print_stack()
-                print drop
                 self._drop(drop, packet, candidate)
 
             except DelayPacket as delay:
