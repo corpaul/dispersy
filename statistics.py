@@ -265,28 +265,6 @@ class DispersyStatistics(Statistics):
         self.bartercast = self.load_statistic(self._dispersy, u"bartercast")
         self._logger.error(self.bartercast)
 
-        if load_bartercast:
-            self.load_bartercast()
-        else:
-            self.bartercast = defaultdict()
-
-    @call_on_reactor_thread
-    def load_bartercast(self):
-        self._logger.error("loading bartercast statistics:")
-        self.bartercast = self.load_statistic(self._dispersy, u"bartercast")
-        self._logger.error(self.bartercast)
-
-        if load_bartercast:
-            self.load_bartercast()
-        else:
-            self.bartercast = defaultdict()
-
-    @call_on_reactor_thread
-    def load_bartercast(self):
-        self._logger.error("loading bartercast statistics:")
-        self.bartercast = self.load_statistic(self._dispersy, u"bartercast")
-        self._logger.error(self.bartercast)
-
     @property
     def database_version(self):
         return self._dispersy.database.database_version
@@ -317,7 +295,7 @@ class DispersyStatistics(Statistics):
             self.endpoint_recv = dict_assigned_value()
             self.endpoint_send = dict_assigned_value()
 
-             # SOURCE:INTRODUCED:COUNT nested dictionary
+            # SOURCE:INTRODUCED:COUNT nested dictionary
             self.received_introductions = defaultdict(lambda: defaultdict(int)) if enable else None
 
             for community in self._dispersy.get_communities():
