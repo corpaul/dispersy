@@ -254,6 +254,27 @@ class DispersyStatistics(Statistics):
         self.enable_debug_statistics(__debug__)
 
         self.update()
+        if load_bartercast:
+            self.load_bartercast()
+        else:
+            self.bartercast = defaultdict()
+
+    @call_on_reactor_thread
+    def load_bartercast(self):
+        self._logger.error("loading bartercast statistics:")
+        self.bartercast = self.load_statistic(self._dispersy, u"bartercast")
+        self._logger.error(self.bartercast)
+
+        if load_bartercast:
+            self.load_bartercast()
+        else:
+            self.bartercast = defaultdict()
+
+    @call_on_reactor_thread
+    def load_bartercast(self):
+        self._logger.error("loading bartercast statistics:")
+        self.bartercast = self.load_statistic(self._dispersy, u"bartercast")
+        self._logger.error(self.bartercast)
 
         if load_bartercast:
             self.load_bartercast()
