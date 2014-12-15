@@ -433,28 +433,11 @@ class CommunityStatistics(Statistics):
 LATEST_VERSION = 1
 
 schema = u"""
-<<<<<<< HEAD
-<<<<<<< HEAD
 -- statistic contains a dump of the pickle object of a statistic. Mainly used to backup bartercast statistics.
 CREATE TABLE statistic(
  id INTEGER,                            -- primary key
  name TEXT,                             -- name of the statistic
  object TEXT,                           -- pickle object representing the statistic
-=======
--- record contains all received and non-pruned barter records.  this information is, most likely
--- also available at other peers, since the barter records are gossiped around.
-CREATE TABLE statistic(
- id INTEGER,                            -- primary key
- name TEXT,                             -- name of the statistic
- object BLOB,                           -- JSON object representing the statistic
->>>>>>> added persist method
-=======
--- statistic contains a dump of the pickle object of a statistic. Mainly used to backup bartercast statistics.
-CREATE TABLE statistic(
- id INTEGER,                            -- primary key
- name TEXT,                             -- name of the statistic
- object TEXT,                           -- pickle object representing the statistic
->>>>>>> persist statistic stuff
  PRIMARY KEY (id),
  UNIQUE (name));
 
