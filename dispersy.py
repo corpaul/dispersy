@@ -416,12 +416,13 @@ class Dispersy(TaskManager):
     def backup_bartercast_statistics(self, community):
         self._logger.error("merging bartercast statistics")
         bartercast = community._statistics.bartercast
+        print "merging: %s" % bartercast
         for k in bartercast.keys():
             if k in self._statistics.bartercast:
                 self._statistics.bartercast[k] = dict(self._statistics.bartercast[k].items() + bartercast[k].items())
             else:
                 self._statistics.bartercast[k] = dict(bartercast[k].items())
-        self._statistics.persist(self, "bartercast", self._statistics.bartercast, 10)
+        self._statistics.persist(self, "bartercast", self._statistics.bartercast, 1)
 
     def attach_progress_handler(self, func):
         assert callable(func), "handler must be callable"

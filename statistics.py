@@ -106,6 +106,7 @@ class Statistics(object):
 
         self._init_database(dispersy)
         pickle_object = cPickle.dumps(data)
+        self._logger.error("persisting bc data")
         self.db.execute(u"INSERT OR REPLACE INTO statistic (name, object) values (?, ?)", (unicode(key), unicode(pickle_object)))
 
     def load_statistic(self, dispersy, key):
@@ -381,9 +382,17 @@ class CommunityStatistics(Statistics):
         self.enable_debug_statistics(self._dispersy.statistics.are_debug_statistics_enabled())
 
         self.torrents_received = defaultdict(int)
+        self.tunnels_created = defaultdict(int)
+        self.tunnels_mb_sent = defaultdict(int)
+        self.tunnels_mb_received = defaultdict(int)
 
         # add bartercast statistics here so we can back them up later easily
-        self.bartercast = {'torrents_received': self.torrents_received}
+        # @TODO check if this is hogging memory.. otherwise combine them into BarterRecord objects (less handy for selecting
+        # top_n etc)
+        self.bartercast = {'torrents_received': self.torrents_received,
+                           'tunnels_created': self.tunnels_created,
+                           'tunnels_mb_sent': self.tunnels_mb_sent,
+                           'tunnels_mb_received': self.tunnels_mb_received}
 
     def increase_total_received_count(self, value):
         self.msg_statistics.total_received_count += value
@@ -399,6 +408,14 @@ class CommunityStatistics(Statistics):
     def increase_delay_msg_count(self, category, value=1):
         self.msg_statistics.increase_delay_count(category, value)
         self._dispersy.statistics.msg_statistics.increase_delay_count(category, value)
+
+    # @TODO anonymize this using bucket?
+    def increase_relay_bytes_up(self, peer, value=1):
+        self.tunnels_mb_sent[peer] += value
+
+    # @TODO anonymize this using bucket?
+    def increase_relay_bytes_down(self, value=1):
+        self.tunnels_mb_received += value
 
     @property
     def acceptable_global_time(self):
@@ -429,7 +446,9 @@ class CommunityStatistics(Statistics):
         self.total_candidates_discovered = 0
         self.msg_statistics.reset()
 
+
 LATEST_VERSION = 1
+
 
 schema = u"""
 -- statistic contains a dump of the pickle object of a statistic. Mainly used to backup bartercast statistics.
