@@ -414,8 +414,11 @@ class CommunityStatistics(Statistics):
         self.tunnels_mb_sent[peer] += value
 
     # @TODO anonymize this using bucket?
-    def increase_relay_bytes_down(self, value=1):
-        self.tunnels_mb_received += value
+    def increase_relay_bytes_down(self, peer, value=1):
+        self.tunnels_mb_received[peer] += value
+
+    def increase_tunnels_created(self, peer, value=1):
+        self.tunnels_created[peer] += value
 
     @property
     def acceptable_global_time(self):
