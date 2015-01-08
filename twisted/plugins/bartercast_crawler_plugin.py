@@ -11,11 +11,10 @@ from time import time
 
 from dispersy.candidate import LoopbackCandidate
 from dispersy.crypto import NoVerifyCrypto, NoCrypto
-from dispersy.discovery.community import DiscoveryCommunity
+# from dispersy.discovery.community import DiscoveryCommunity
 from dispersy.dispersy import Dispersy
 from dispersy.endpoint import StandaloneEndpoint
 from dispersy.exception import CommunityNotFoundException
-from tribler.community.bartercast4 import BarterCommunityCrawler
 from twisted.application.service import IServiceMaker, MultiService
 from twisted.conch import manhole_tap
 from twisted.internet import reactor
@@ -25,9 +24,10 @@ from twisted.python import usage
 from twisted.python.log import msg
 from twisted.python.threadable import isInIOThread
 from zope.interface import implements
+from Tribler.community.bartercast4.community import BarterCommunity, BarterCommunityCrawler
+from dispersy.community import Community
 
 
-COMMUNITY_CLEANUP_INTERVAL = 180.0
 
 if sys.platform == 'win32':
     SOCKET_BLOCK_ERRORCODE = 10035  # WSAEWOULDBLOCK
@@ -45,15 +45,14 @@ class BartercastCrawler(Dispersy):
         self._silent = silent
         self._my_member = None
 
+
     def start(self):
         assert isInIOThread()
         if super(BartercastCrawler, self).start():
             self._create_my_member()
-            self._load_persistent_storage()
-
-            self.register_task("unload inactive communities",
-                               LoopingCall(self.unload_inactive_communities)).start(COMMUNITY_CLEANUP_INTERVAL)
-
+           # self.register_task("unload inactive communities",
+            #                   LoopingCall(self.unload_inactive_communities)).start(COMMUNITY_CLEANUP_INTERVAL)
+            self.define_auto_load(BarterCommunity, self._my_member)
             self.define_auto_load(BarterCommunityCrawler, self._my_member)
             # self.define_auto_load(TrackerHardKilledCommunity, self._my_member)
 
@@ -79,40 +78,6 @@ class BartercastCrawler(Dispersy):
         except CommunityNotFoundException:
             return BarterCommunityCrawler.init_community(self, self.get_member(mid=cid), self._my_member)
 
-    def _load_persistent_storage(self):
-        # load all destroyed communities
-        try:
-            packets = [pkt.decode("HEX") for _, pkt in (line.split() for
-                                                        line in open(self._persistent_storage_filename, "r") if not
-                                                        line.startswith("#"))]
-        except IOError:
-            pass
-        else:
-            candidate = LoopbackCandidate()
-            for pkt in reversed(packets):
-                try:
-                    self.on_incoming_packets([(candidate, pkt)], cache=False, timestamp=time())
-                except:
-                    self._logger.exception("Error while loading from persistent-destroy-community.data")
-
-    def unload_inactive_communities(self):
-        def is_active(community, now):
-            # check 1: DiscoveryCommunity is always active
-            if isinstance(community, DiscoveryCommunity):
-                return True
-
-            # check 2: does the community have any active candidates
-            if community.update_strikes(now) < 3:
-                return True
-
-            return False
-
-        now = time()
-        inactive = [community for community in self._communities.itervalues() if not is_active(community, now)]
-        print "#cleaned %d/%d communities" % (len(inactive), len(self._communities))
-        for community in inactive:
-            community.unload_community()
-
 
 class Options(usage.Options):
     optFlags = [
@@ -132,7 +97,7 @@ class Options(usage.Options):
 class BartercastCrawlerServiceMaker(object):
     implements(IServiceMaker, IPlugin)
     tapname = "bartercast_crawler"
-    description = "A Dispersy tracker"
+    description = "A BartercastCommunity statistics crawler"
     options = Options
 
     def makeService(self, options):
@@ -141,7 +106,7 @@ class BartercastCrawlerServiceMaker(object):
         """
 
         tracker_service = MultiService()
-        tracker_service.setName("Dispersy Tracker")
+        tracker_service.setName("Bartercast Crawler")
         # crypto
         if options["crypto"] == 'NoCrypto':
             crypto = NoCrypto()
