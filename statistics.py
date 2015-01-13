@@ -24,9 +24,16 @@ class Statistics(object):
 
     def dict_inc(self, dictionary, key, value=1):
         with self._lock:
-            assert hasattr(self, dictionary), u"%s doesn't exist in statistics" % dictionary
+            assert hasattr(self, "%s" % dictionary), u"%s doesn't exist in statistics" % dictionary
             if getattr(self, dictionary) is not None:
                 getattr(self, dictionary)[key] += value
+
+    def dict_inc_bartercast(self, stats_type, key, value=1):
+        if not hasattr(self, "bartercast"):
+                self._logger.error(u"bartercast doesn't exist in statistics")
+        with self._lock:
+            assert stats_type < len(self.bartercast), u"%s doesn't exist in bartercast statistics" % stats_type
+            self.bartercast[stats_type][key] += value
 
     def get_top_n_bartercast_statistics(self, key, n):
         """
@@ -389,10 +396,14 @@ class CommunityStatistics(Statistics):
         # add bartercast statistics here so we can back them up later easily
         # @TODO check if this is hogging memory.. otherwise combine them into BarterRecord objects (less handy for selecting
         # top_n etc)
-        self.bartercast = {'torrents_received': self.torrents_received,
-                           'tunnels_created': self.tunnels_created,
-                           'tunnels_mb_sent': self.tunnels_mb_sent,
-                           'tunnels_mb_received': self.tunnels_mb_received}
+        # self.bartercast = {'torrents_received': self.torrents_received,
+        #                   'tunnels_created': self.tunnels_created,
+        #                   'tunnels_mb_sent': self.tunnels_mb_sent,
+        #                   'tunnels_mb_received': self.tunnels_mb_received}
+        self.bartercast = {BartercastStatisticTypes.TORRENTS_RECEIVED: self.torrents_received,
+                           BartercastStatisticTypes.TUNNELS_CREATED: self.tunnels_created,
+                           BartercastStatisticTypes.TUNNELS_MB_SENT: self.tunnels_mb_sent,
+                           BartercastStatisticTypes.TUNNELS_MB_RECEIVED: self.tunnels_mb_received}
 
     def increase_total_received_count(self, value):
         self.msg_statistics.total_received_count += value
@@ -522,3 +533,24 @@ class StatisticsDatabase(Database):
                 pass
 
         return LATEST_VERSION
+
+
+def enum(*sequential, **named):
+    enums = dict(zip(sequential, range(len(sequential))), **named)
+    reverse = dict((value, key) for key, value in enums.iteritems())
+    enums['reverse_mapping'] = reverse
+    return type('Enum', (), enums)
+
+BartercastStatisticTypes = enum(TORRENTS_RECEIVED=1, TUNNELS_CREATED=2, TUNNELS_MB_SENT=3, TUNNELS_MB_RECEIVED=4)
+
+
+def getBartercastStatisticDescription(t):
+    if t is BartercastStatisticTypes.TORRENTS_RECEIVED:
+        return "torrents_received"
+    if t is BartercastStatisticTypes.TUNNELS_CREATED:
+        return "tunnels_created"
+    if t is BartercastStatisticTypes.TUNNELS_MB_SENT:
+        return "tunnels_mb_sent"
+    if t is BartercastStatisticTypes.TUNNELS_MB_RECEIVED:
+        return "tunnels_mb_received"
+    return "unknown"

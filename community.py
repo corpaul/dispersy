@@ -306,6 +306,7 @@ class Community(TaskManager):
     def initialize(self):
         assert isInIOThread()
         self._logger.info("initializing:  %s", self.get_classification())
+        print "initializing:  %s", self.get_classification()
         self._logger.debug("master member: %s %s", self._master_member.mid.encode("HEX"),
             "" if self._master_member.public_key else " (no public key available)")
 
@@ -317,6 +318,8 @@ class Community(TaskManager):
         # add task for merging bartercast statistics every BARTERCAST_MERGE_INTERVAL seconds
         # doing this only at detach_community takes too long for some communities
         self._logger.error("bartercast merge task started for community: %s" % self.__class__.__name__)
+        print "bartercast merge task started for community: %s" % self.__class__.__name__
+
         self.register_task("bartercast merge", LoopingCall(self._bartercast_merge)).start(BARTERCAST_MERGE_INTERVAL, now=False)
 
 
