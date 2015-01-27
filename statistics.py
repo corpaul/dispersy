@@ -123,6 +123,8 @@ class Statistics(object):
         self._init_database(dispersy)
         data = self.db.execute(u"SELECT type, peer, value FROM statistic")
         statistics = defaultdict()
+        for t in BartercastStatisticTypes.reverse_mapping:
+            statistics[t] = defaultdict()
         for row in data:
             t = row[0]
             peer = row[1]
@@ -403,10 +405,10 @@ class CommunityStatistics(Statistics):
 
         self.enable_debug_statistics(self._dispersy.statistics.are_debug_statistics_enabled())
 
-        self.torrents_received = defaultdict(int)
-        self.tunnels_created = defaultdict(int)
-        self.tunnels_mb_sent = defaultdict(int)
-        self.tunnels_mb_received = defaultdict(int)
+        # self.torrents_received = defaultdict(int)
+        # self.tunnels_created = defaultdict(int)
+        # self.tunnels_mb_sent = defaultdict(int)
+        # self.tunnels_mb_received = defaultdict(int)
 
         # add bartercast statistics here so we can back them up later easily
         # @TODO check if this is hogging memory.. otherwise combine them into BarterRecord objects (less handy for selecting
@@ -415,10 +417,15 @@ class CommunityStatistics(Statistics):
         #                   'tunnels_created': self.tunnels_created,
         #                   'tunnels_mb_sent': self.tunnels_mb_sent,
         #                   'tunnels_mb_received': self.tunnels_mb_received}
-        self.bartercast = {BartercastStatisticTypes.TORRENTS_RECEIVED: self.torrents_received,
-                           BartercastStatisticTypes.TUNNELS_CREATED: self.tunnels_created,
-                           BartercastStatisticTypes.TUNNELS_MB_SENT: self.tunnels_mb_sent,
-                           BartercastStatisticTypes.TUNNELS_MB_RECEIVED: self.tunnels_mb_received}
+        # self.bartercast = {BartercastStatisticTypes.TORRENTS_RECEIVED: self.torrents_received,
+        #                   BartercastStatisticTypes.TUNNELS_CREATED: self.tunnels_created,
+        #                   BartercastStatisticTypes.TUNNELS_MB_SENT: self.tunnels_mb_sent,
+        #                   BartercastStatisticTypes.TUNNELS_MB_RECEIVED: self.tunnels_mb_received}
+        # initialize empty dicts for bartercast statistics
+        # these are merged later into DispersyStatistics
+        self.bartercast = defaultdict()
+        for t in BartercastStatisticTypes.reverse_mapping:
+            self.bartercast[t] = defaultdict(int)
 
     def increase_total_received_count(self, value):
         self.msg_statistics.total_received_count += value
@@ -437,14 +444,14 @@ class CommunityStatistics(Statistics):
 
     # @TODO anonymize this using bucket?
     def increase_relay_bytes_up(self, peer, value=1):
-        self.tunnels_mb_sent[peer] += value
+        self.bartercast[BartercastStatisticTypes.TUNNELS_MB_SENT][peer] += value
 
     # @TODO anonymize this using bucket?
     def increase_relay_bytes_down(self, peer, value=1):
-        self.tunnels_mb_received[peer] += value
+        self.bartercast[BartercastStatisticTypes.TUNNELS_MB_RECEIVED][peer] += value
 
     def increase_tunnels_created(self, peer, value=1):
-        self.tunnels_created[peer] += value
+        self.bartercast[BartercastStatisticTypes.TUNNELS_CREATED][peer] += value
 
     @property
     def acceptable_global_time(self):
@@ -568,6 +575,7 @@ BartercastStatisticTypes = enum(TORRENTS_RECEIVED=1, TUNNELS_CREATED=2, TUNNELS_
 
 
 def getBartercastStatisticDescription(t):
+    return BartercastStatisticTypes.reverse_mapping[t]
     if t is BartercastStatisticTypes.TORRENTS_RECEIVED:
         return "torrents_received"
     if t is BartercastStatisticTypes.TUNNELS_CREATED:
