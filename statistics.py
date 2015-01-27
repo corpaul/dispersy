@@ -6,7 +6,6 @@ from time import time
 from .util import _runtime_statistics, call_on_reactor_thread
 from database import Database
 from os import path
-import cPickle
 import logging
 import random
 from operator import itemgetter
@@ -112,16 +111,32 @@ class Statistics(object):
             return
 
         self._init_database(dispersy)
-        pickle_object = cPickle.dumps(data)
+#        pickle_object = cPickle.dumps(data)
         self._logger.error("persisting bc data")
-        self.db.execute(u"INSERT OR REPLACE INTO statistic (name, object) values (?, ?)", (unicode(key), unicode(pickle_object)))
+#        self.db.execute(u"INSERT OR REPLACE INTO statistic (name, object) values (?, ?)", (unicode(key), unicode(pickle_object)))
+        for t in data:
+            for peer in data[t]:
+                self.db.execute(u"INSERT OR REPLACE INTO statistic (type, peer, value) values (?, ?, ?)", (t, unicode(peer), data[t][peer]))
+        self._logger.error("data persisted")
 
     def load_statistic(self, dispersy, key):
         self._init_database(dispersy)
-        data = self.db.execute(u"SELECT object FROM statistic WHERE name = ? LIMIT 1", [unicode(key)])
+        data = self.db.execute(u"SELECT type, peer, value FROM statistic")
+        statistics = defaultdict()
         for row in data:
-            return cPickle.loads(str(row[0]))
-        return defaultdict()
+            t = row[0]
+            peer = row[1]
+            value = row[2]
+            if not t in statistics:
+                statistics[t] = defaultdict()
+            statistics[t][peer] = value
+        self._logger.error("statistics loaded: %s" % statistics)
+        return statistics
+
+#        data = self.db.execute(u"SELECT object FROM statistic WHERE name = ? LIMIT 1", [unicode(key)])
+#        for row in data:
+#            return cPickle.loads(str(row[0]))
+#        return defaultdict()
 
     def _init_database(self, dispersy):
         if self.db is None:
@@ -463,15 +478,23 @@ class CommunityStatistics(Statistics):
 
 LATEST_VERSION = 1
 
+# old
+# -- statistic contains a dump of the pickle object of a statistic. Mainly used to backup bartercast statistics.
+# CREATE TABLE statistic(
+# id INTEGER,                            -- primary key
+# name TEXT,                             -- name of the statistic
+# object TEXT,                           -- pickle object representing the statistic
+# PRIMARY KEY (id),
+# UNIQUE (name));
 
 schema = u"""
--- statistic contains a dump of the pickle object of a statistic. Mainly used to backup bartercast statistics.
 CREATE TABLE statistic(
  id INTEGER,                            -- primary key
- name TEXT,                             -- name of the statistic
- object TEXT,                           -- pickle object representing the statistic
+ type INTEGER,                            -- type of interaction
+ peer TEXT,
+ value INTEGER,
  PRIMARY KEY (id),
- UNIQUE (name));
+ UNIQUE (type, peer));
 
 CREATE TABLE option(key TEXT PRIMARY KEY, value BLOB);
 INSERT INTO option(key, value) VALUES('database_version', '""" + str(LATEST_VERSION) + """');
