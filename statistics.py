@@ -425,15 +425,8 @@ class CommunityStatistics(Statistics):
         self._dispersy.statistics.msg_statistics.increase_delay_count(category, value)
 
     # @TODO anonymize this using bucket?
-    def increase_relay_bytes_up(self, peer, value=1):
-        self.bartercast[BartercastStatisticTypes.TUNNELS_MB_SENT][peer] += value
-
-    # @TODO anonymize this using bucket?
-    def increase_relay_bytes_down(self, peer, value=1):
-        self.bartercast[BartercastStatisticTypes.TUNNELS_MB_RECEIVED][peer] += value
-
-    def increase_tunnels_created(self, peer, value=1):
-        self.bartercast[BartercastStatisticTypes.TUNNELS_CREATED][peer] += value
+    def increase_tunnel_stats(self, stats_type, peer, value=1):
+        self.bartercast[stats_type][peer] += value
 
     @property
     def acceptable_global_time(self):
@@ -553,4 +546,6 @@ def enum(*sequential, **named):
     enums['reverse_mapping'] = reverse
     return type('Enum', (), enums)
 
-BartercastStatisticTypes = enum(TORRENTS_RECEIVED=1, TUNNELS_CREATED=2, TUNNELS_MB_SENT=3, TUNNELS_MB_RECEIVED=4)
+BartercastStatisticTypes = enum(TORRENTS_RECEIVED=1, TUNNELS_CREATED=2, \
+                                TUNNELS_BYTES_SENT=3, TUNNELS_RELAY_BYTES_SENT=4, TUNNELS_EXIT_BYTES_SENT=5, \
+                                TUNNELS_BYTES_RECEIVED=6, TUNNELS_RELAY_BYTES_RECEIVED=7, TUNNELS_EXIT_BYTES_RECEIVED=8)
