@@ -3,13 +3,12 @@ from collections import defaultdict
 from threading import RLock
 from time import time
 
-from .util import _runtime_statistics, call_on_reactor_thread
-from database import Database
+from .util import call_on_reactor_thread, _runtime_statistics
 from os import path
 import logging
 import random
 from operator import itemgetter
-
+from database import Database
 
 class Statistics(object):
 
@@ -112,12 +111,12 @@ class Statistics(object):
 
         self._init_database(dispersy)
 #        pickle_object = cPickle.dumps(data)
-        self._logger.error("persisting bc data")
+        self._logger.debug("persisting bc data")
 #        self.db.execute(u"INSERT OR REPLACE INTO statistic (name, object) values (?, ?)", (unicode(key), unicode(pickle_object)))
         for t in data:
             for peer in data[t]:
                 self.db.execute(u"INSERT OR REPLACE INTO statistic (type, peer, value) values (?, ?, ?)", (t, unicode(peer), data[t][peer]))
-        self._logger.error("data persisted")
+        self._logger.debug("data persisted")
 
     def load_statistic(self, dispersy, key):
         self._init_database(dispersy)
@@ -132,7 +131,6 @@ class Statistics(object):
             if not t in statistics:
                 statistics[t] = defaultdict()
             statistics[t][peer] = value
-        self._logger.error("statistics loaded: %s" % statistics)
         return statistics
 
 #        data = self.db.execute(u"SELECT object FROM statistic WHERE name = ? LIMIT 1", [unicode(key)])
@@ -289,7 +287,6 @@ class DispersyStatistics(Statistics):
     def load_bartercast(self):
         self._logger.error("loading bartercast statistics:")
         self.bartercast = self.load_statistic(self._dispersy, u"bartercast")
-        self._logger.error(self.bartercast)
 
     @property
     def database_version(self):
@@ -460,38 +457,6 @@ class CommunityStatistics(Statistics):
         self.total_candidates_discovered = 0
         self.msg_statistics.reset()
 
-class RuntimeStatistic(object):
-
-    def __init__(self):
-        self._count = 0
-        self._duration = 0.0
-
-    @property
-    def count(self):
-        " Returns the number of times a method was called. "
-        return self._count
-
-    @property
-    def duration(self):
-        " Returns the cumulative time spent in a method. "
-        return self._duration
-
-    @property
-    def average(self):
-        " Returns the average time spent in a method. "
-        return self._duration / self._count
-
-    def increment(self, duration):
-        " Increase self.count with 1 and self.duration with DURATION. "
-        assert isinstance(duration, float), type(duration)
-        self._duration += duration
-        self._count += 1
-
-    def get_dict(self, **kargs):
-        " Returns a dictionary with the statistics. "
-        return dict(count=self.count, duration=self.duration, average=self.average, **kargs)
-
-_runtime_statistics = defaultdict(RuntimeStatistic)
 
 LATEST_VERSION = 1
 
@@ -583,3 +548,4 @@ def enum(*sequential, **named):
 BartercastStatisticTypes = enum(TORRENTS_RECEIVED=1, TUNNELS_CREATED=2, \
                                 TUNNELS_BYTES_SENT=3, TUNNELS_RELAY_BYTES_SENT=4, TUNNELS_EXIT_BYTES_SENT=5, \
                                 TUNNELS_BYTES_RECEIVED=6, TUNNELS_RELAY_BYTES_RECEIVED=7, TUNNELS_EXIT_BYTES_RECEIVED=8)
+

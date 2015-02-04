@@ -67,9 +67,9 @@ from .exception import CommunityNotFoundException, ConversionNotFoundException, 
 from .member import DummyMember, Member
 from .message import (Message, DropMessage, DelayMessageBySequence,
                       DropPacket, DelayPacket)
-from .statistics import DispersyStatistics, _runtime_statistics
+from .statistics import DispersyStatistics
 from .taskmanager import TaskManager
-from .util import attach_runtime_statistics, init_instrumentation, blocking_call_on_reactor_thread, is_valid_address
+from .util import attach_runtime_statistics, init_instrumentation, blocking_call_on_reactor_thread, is_valid_address, _runtime_statistics
 
 
 # Set up the instrumentation utilities
@@ -414,14 +414,15 @@ class Dispersy(TaskManager):
 
     # bartercast accounting stuff
     def backup_bartercast_statistics(self, community):
-        self._logger.error("merging bartercast statistics")
+        self._logger.debug("merging bartercast statistics")
         bartercast = community._statistics.bartercast
-        print "merging: %s" % bartercast
         for k in bartercast.keys():
             if k in self._statistics.bartercast:
                 self._statistics.bartercast[k] = dict(self._statistics.bartercast[k].items() + bartercast[k].items())
             else:
                 self._statistics.bartercast[k] = dict(bartercast[k].items())
+        self._logger.debug("%s" % self._statistics.bartercast)
+
         self._statistics.persist(self, "bartercast", self._statistics.bartercast, 1)
 
     def attach_progress_handler(self, func):
@@ -585,11 +586,11 @@ class Dispersy(TaskManager):
         destination_classification = destination.get_classification()
 
         if isinstance(source, Member):
-            self._logger.error("reclassify <unknown> -> %s", destination_classification)
+            self._logger.debug("reclassify <unknown> -> %s", destination_classification)
             master = source
 
         else:
-            self._logger.error("reclassify %s -> %s", source.get_classification(), destination_classification)
+            self._logger.debug("reclassify %s -> %s", source.get_classification(), destination_classification)
             assert source.cid in self._communities
             assert self._communities[source.cid] == source
             master = source.master_member
@@ -721,6 +722,7 @@ class Dispersy(TaskManager):
         assert isinstance(voter, Candidate)
         for vote, voters in self._wan_address_votes.iteritems():
             if voter.sock_addr in voters:
+                self._logger.debug("removing vote for %s made by %s", vote, voter)
                 voters.remove(voter.sock_addr)
                 if len(voters) == 0:
                     del self._wan_address_votes[vote]
@@ -1699,6 +1701,8 @@ ORDER BY global_time""", (meta.database_id, member_database_id)))
         assert len(messages) > 0
         assert all(message.community == messages[0].community for message in messages)
         assert all(message.meta == messages[0].meta for message in messages)
+
+        self._logger.debug("%d %s messages (%s %s %s)", len(messages), messages[0].name, store, update, forward)
 
         store = store and isinstance(messages[0].meta.distribution, SyncDistribution)
         if store:

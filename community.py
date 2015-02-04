@@ -306,7 +306,6 @@ class Community(TaskManager):
     def initialize(self):
         assert isInIOThread()
         self._logger.info("initializing:  %s", self.get_classification())
-        print "initializing:  %s", self.get_classification()
         self._logger.debug("master member: %s %s", self._master_member.mid.encode("HEX"),
             "" if self._master_member.public_key else " (no public key available)")
 
@@ -317,9 +316,7 @@ class Community(TaskManager):
 
         # add task for merging bartercast statistics every BARTERCAST_MERGE_INTERVAL seconds
         # doing this only at detach_community takes too long for some communities
-        self._logger.error("bartercast merge task started for community: %s" % self.__class__.__name__)
-        print "bartercast merge task started for community: %s" % self.__class__.__name__
-
+        self._logger.debug("bartercast merge task started for community: %s" % self.__class__.__name__)
         self.register_task("bartercast merge", LoopingCall(self._bartercast_merge)).start(BARTERCAST_MERGE_INTERVAL, now=False)
 
 
@@ -2006,7 +2003,7 @@ class Community(TaskManager):
                 self._statistics.increase_msg_count(u"drop", u"delay_timeout:%s" % delayed)
 
     def _bartercast_merge(self):
-        self._logger.error("merging bartercast for %s" % self.__class__.__name__)
+        self._logger.debug("merging bartercast for %s" % self.__class__.__name__)
         self._dispersy.backup_bartercast_statistics(self)
 
     def on_incoming_packets(self, packets, cache=True, timestamp=0.0, source=u"unknown"):
