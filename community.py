@@ -49,7 +49,6 @@ FAST_WALKER_STEPS = 30
 FAST_WALKER_STEP_INTERVAL = 1
 PERIODIC_CLEANUP_INTERVAL = 5.0
 TAKE_STEP_INTERVAL = 5
-BARTERCAST_MERGE_INTERVAL = 120.0
 
 logger = logging.getLogger(__name__)
 
@@ -313,12 +312,6 @@ class Community(TaskManager):
         # initialize -> invoke_func -> _get_latest_channel_message -> convert_packet_to_message -> get_community ->
         # init_community
         self.register_task("periodic cleanup", LoopingCall(self._periodically_clean_delayed)).start(PERIODIC_CLEANUP_INTERVAL, now=False)
-
-        # add task for merging bartercast statistics every BARTERCAST_MERGE_INTERVAL seconds
-        # doing this only at detach_community takes too long for some communities
-        self._logger.debug("bartercast merge task started for community: %s" % self.__class__.__name__)
-        self.register_task("bartercast merge", LoopingCall(self._bartercast_merge)).start(BARTERCAST_MERGE_INTERVAL, now=False)
-
 
         try:
             self._database_id, my_member_did, self._database_version = self._dispersy.database.execute(
@@ -2001,10 +1994,6 @@ class Community(TaskManager):
                 delayed.on_timeout()
                 self._statistics.increase_delay_msg_count(u"timeout")
                 self._statistics.increase_msg_count(u"drop", u"delay_timeout:%s" % delayed)
-
-    def _bartercast_merge(self):
-        self._logger.debug("merging bartercast for %s" % self.__class__.__name__)
-        self._dispersy.backup_bartercast_statistics(self)
 
     def on_incoming_packets(self, packets, cache=True, timestamp=0.0, source=u"unknown"):
         """

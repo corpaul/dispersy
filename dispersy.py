@@ -86,7 +86,7 @@ class Dispersy(TaskManager):
     outgoing data for, possibly, multiple communities.
     """
 
-    def __init__(self, endpoint, working_directory, database_filename=u"dispersy.db", crypto=ECCrypto(), load_bartercast=True):
+    def __init__(self, endpoint, working_directory, database_filename=u"dispersy.db", crypto=ECCrypto()):
         """
         Initialise a Dispersy instance.
 
@@ -156,8 +156,7 @@ class Dispersy(TaskManager):
         self._progress_handlers = []
 
         # statistics...
-        self._statistics = DispersyStatistics(self, load_bartercast)
-
+        self._statistics = DispersyStatistics(self)
 
     @staticmethod
     def _get_interface_addresses():
@@ -407,23 +406,7 @@ class Dispersy(TaskManager):
             self._discovery_community.new_community(community)
 
     def detach_community(self, community):
-        # self.backup_bartercast_statistics(self._communities[community.cid])
-        self.backup_bartercast_statistics(community)
-        # del self._communities[community.cid]
         self._communities.pop(community.cid, None)
-
-    # bartercast accounting stuff
-    def backup_bartercast_statistics(self, community):
-        self._logger.debug("merging bartercast statistics")
-        bartercast = community._statistics.bartercast
-        for k in bartercast.keys():
-            if k in self._statistics.bartercast:
-                self._statistics.bartercast[k] = dict(self._statistics.bartercast[k].items() + bartercast[k].items())
-            else:
-                self._statistics.bartercast[k] = dict(bartercast[k].items())
-        self._logger.debug("%s" % self._statistics.bartercast)
-
-        self._statistics.persist(self, "bartercast", self._statistics.bartercast, 1)
 
     def attach_progress_handler(self, func):
         assert callable(func), "handler must be callable"
